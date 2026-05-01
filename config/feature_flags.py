@@ -9,7 +9,7 @@ from __future__ import annotations
 import dataclasses
 import os
 from pathlib import Path
-from typing import Any
+from typing import Any, get_type_hints
 
 
 @dataclasses.dataclass(frozen=True)
@@ -97,7 +97,8 @@ def load_feature_flags(config_path: str | Path | None = "config.yaml") -> Featur
                     pass
 
     # 2. Load from env vars  (PO_FEATURE_RETRY_ENABLED=true  →  retry_enabled=True)
-    field_types = {f.name: f.type for f in dataclasses.fields(FeatureFlags)}
+    # Use get_type_hints() to resolve actual types (f.type returns strings with __future__ annotations)
+    field_types = get_type_hints(FeatureFlags)
     for key, value in os.environ.items():
         if key.startswith(_ENV_PREFIX):
             field_name = key[len(_ENV_PREFIX):].lower()
