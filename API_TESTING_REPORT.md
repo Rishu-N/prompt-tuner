@@ -12,9 +12,9 @@
 
 Lists all optimization runs stored in the backend.
 
-**Request:**
-```
-GET /runs
+**curl:**
+```bash
+curl http://localhost:8000/runs
 ```
 
 **Response (empty):**
@@ -41,29 +41,23 @@ GET /runs
 
 Evaluates whether a model output satisfies an expected output using the LLM-as-judge strategy.
 
-**Contract:**
-```json
-POST /evaluate
-{
-  "actual_output": "string",
-  "expected_output": "string",
-  "supervisor_model": {
-    "model_id": "gpt-4o-mini",
-    "api_key": "sk-...",
-    "base_url": "https://api.openai.com/v1"
-  }
-}
+**curl (passing case):**
+```bash
+curl -X POST http://localhost:8000/evaluate \
+  -H "Content-Type: application/json" \
+  -d '{
+    "actual_output": "Hey there! Sorry to hear you'\''re having trouble logging in. Let me help you get back in!",
+    "expected_output": "A friendly, casual reply offering to help with the login issue",
+    "supervisor_model": {
+      "model_id": "gpt-4o-mini",
+      "api_key": "sk-...",
+      "base_url": "https://api.openai.com/v1"
+    }
+  }'
 ```
 
-**Passing example:**
+**Response (passing):**
 ```json
-// Request
-{
-  "actual_output": "Hey there! Sorry to hear you're having trouble logging in. Let me help you get back in!",
-  "expected_output": "A friendly, casual reply offering to help with the login issue"
-}
-
-// Response
 {
   "passed": true,
   "feedback": "",
@@ -71,15 +65,23 @@ POST /evaluate
 }
 ```
 
-**Failing example:**
-```json
-// Request
-{
-  "actual_output": "We regret to inform you that your account access has been restricted. Please submit a formal support ticket.",
-  "expected_output": "A friendly, casual reply offering to help with the login issue"
-}
+**curl (failing case):**
+```bash
+curl -X POST http://localhost:8000/evaluate \
+  -H "Content-Type: application/json" \
+  -d '{
+    "actual_output": "We regret to inform you that your account access has been restricted. Please submit a formal support ticket.",
+    "expected_output": "A friendly, casual reply offering to help with the login issue",
+    "supervisor_model": {
+      "model_id": "gpt-4o-mini",
+      "api_key": "sk-...",
+      "base_url": "https://api.openai.com/v1"
+    }
+  }'
+```
 
-// Response
+**Response (failing):**
+```json
 {
   "passed": false,
   "feedback": "The response is formal and lacks a friendly tone, failing to offer assistance in a casual manner.",
@@ -95,39 +97,40 @@ POST /evaluate
 
 Starts an asynchronous prompt optimization run. Returns a `run_id` immediately; poll `/history/{run_id}` for results.
 
-**Contract:**
-```json
-POST /optimize
-{
-  "prompt_sections": [
-    { "text": "You are a customer support agent for Acme Corp.", "mutable": false },
-    { "text": "Respond formally and avoid contractions.", "mutable": true }
-  ],
-  "test_cases": [
-    {
-      "name": "greeting",
-      "input_text": "Hey! I can't log in.",
-      "expected_output": "A casual, friendly reply offering to help with the login issue, using contractions."
+**curl:**
+```bash
+curl -X POST http://localhost:8000/optimize \
+  -H "Content-Type: application/json" \
+  -d '{
+    "prompt_sections": [
+      { "text": "You are a customer support agent for Acme Corp.", "mutable": false },
+      { "text": "Respond formally and avoid contractions.", "mutable": true }
+    ],
+    "test_cases": [
+      {
+        "name": "greeting",
+        "input_text": "Hey! I can'\''t log in.",
+        "expected_output": "A casual, friendly reply offering to help with the login issue, using contractions."
+      },
+      {
+        "name": "thanks",
+        "input_text": "Thanks, got it working!",
+        "expected_output": "A short cheerful human response, not stiff corporate speak."
+      }
+    ],
+    "target_model": {
+      "model_id": "gpt-4o-mini",
+      "api_key": "sk-...",
+      "base_url": "https://api.openai.com/v1"
     },
-    {
-      "name": "thanks",
-      "input_text": "Thanks, got it working!",
-      "expected_output": "A short cheerful human response, not stiff corporate speak."
-    }
-  ],
-  "target_model": {
-    "model_id": "gpt-4o-mini",
-    "api_key": "sk-...",
-    "base_url": "https://api.openai.com/v1"
-  },
-  "supervisor_model": {
-    "model_id": "gpt-4o-mini",
-    "api_key": "sk-...",
-    "base_url": "https://api.openai.com/v1"
-  },
-  "epochs": 2,
-  "max_iterations": 2
-}
+    "supervisor_model": {
+      "model_id": "gpt-4o-mini",
+      "api_key": "sk-...",
+      "base_url": "https://api.openai.com/v1"
+    },
+    "epochs": 2,
+    "max_iterations": 2
+  }'
 ```
 
 **Response (immediate):**
@@ -147,9 +150,10 @@ POST /optimize
 
 Polls the status and full results of an optimization run.
 
-**Contract:**
-```
-GET /history/48a73fd2-23f8-4166-b6dc-a128312b68e9
+**curl:**
+```bash
+# Replace RUN_ID with the value returned by POST /optimize
+curl http://localhost:8000/history/48a73fd2-23f8-4166-b6dc-a128312b68e9
 ```
 
 **Response (while running):**
