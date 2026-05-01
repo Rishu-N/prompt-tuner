@@ -1,0 +1,31 @@
+# Prompt Optimizer — Feature Flag Configuration
+# Uncomment flags to override defaults. Env vars (PO_FEATURE_*) take priority.
+
+features:
+  # Core strategies
+  evaluator_strategy: "llm_judge"
+  optimizer_strategy: "discussion_loop"
+  updater_strategy: "merge_mutable"
+
+  # Reliability
+  # retry_enabled: true
+  # cache_enabled: true
+  # checkpoint_enabled: true
+  # cost_tracking_enabled: true
+
+  # UI
+  ui_thread_safe_state: true
+  # ui_auto_poll: true
+  # ui_input_validation: true
+  # ui_export_enabled: true
+  # ui_color_preview: true
+
+  # API
+  # api_auth_enabled: true
+  # api_auth_key: "your-secret-key"
+  # api_persistent_storage: true
+  # api_storage_backend: "sqlite"
+
+  # Advanced
+  # convergence_detection_enabled: true
+  # version_history_enabled: true
